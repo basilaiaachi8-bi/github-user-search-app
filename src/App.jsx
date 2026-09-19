@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
-import UserCard from "./components/UserCard";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
   const [theme, setTheme] = useState("dark");
-  const [user, setUser] = useState(null);
   const [error, setError] = useState(false);
+  const navigate = useNavigate();
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
@@ -14,32 +15,31 @@ function App() {
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
-  const fetchGitHubUser = async (username) => {
-    try {
-      setError(false);
-      const res = await fetch(`https://api.github.com/users/${username}`);
-
-      if (!res.ok) {
-        setError(true);
-        return;
-      }
-
-      const data = await res.json();
-      setUser(data);
-    } catch (err) {
-      setError(true);
+  const handleSearch = (username) => {
+    if (username.trim()) {
+      navigate(`/user/${username}`);
     }
   };
 
-  useEffect(() => {
-    fetchGitHubUser("octocat");
-  }, []);
-
   return (
-    <div style={{ width: "100%", maxWidth: "730px", padding: "0 1.5rem" }}>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "730px",
+        padding: "2rem 1.5rem",
+        margin: "0 auto",
+      }}
+    >
       <Header theme={theme} toggleTheme={toggleTheme} />
-      <SearchBar onSearch={fetchGitHubUser} error={error} />
-      {user && <UserCard user={user} />}
+      <SearchBar onSearch={handleSearch} error={error} />
+
+      <Routes>
+        <Route path="/" element={<Navigate to="/user/octocat" replace />} />
+        <Route
+          path="/user/:username"
+          element={<UserProfile setError={setError} />}
+        />
+      </Routes>
     </div>
   );
 }
